@@ -30,7 +30,6 @@ def load_data():
         df = df.dropna(how='all') # Rimuove righe vuote
         return df
     except Exception as e:
-        st.error(f"Errore di connessione allo Storico. Hai condiviso il foglio con l'email di servizio?")
         return pd.DataFrame(columns=["Data", "Giorno", "Esercizio", "Peso_S1", "Reps_S1", "Peso_S2", "Reps_S2", "Peso_S3", "Reps_S3", "Peso_S4", "Reps_S4", "Note"])
 
 @st.cache_data(ttl=5)
@@ -40,7 +39,8 @@ def load_exercises():
         df_ex = df_ex.dropna(how='all')
         if df_ex.empty:
             df_default = pd.DataFrame(DEFAULT_EXERCISES)
-            conn.update(worksheet="Esercizi", data=df_default)
+            # Corretto: aggiunto spreadsheet=SPREADSHEET_URL
+            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_default)
             return df_default
         return df_ex
     except Exception:
@@ -142,7 +142,8 @@ if esercizio_selezionato:
             }])
             
             df_aggiornato = pd.concat([df_storico, nuovo_dato], ignore_index=True)
-            conn.update(worksheet="Storico", data=df_aggiornato)
+            # Corretto: aggiunto spreadsheet=SPREADSHEET_URL
+            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Storico", data=df_aggiornato)
             st.cache_data.clear()
             st.success("Allenamento salvato su Google Sheets!")
             st.rerun()
@@ -160,7 +161,8 @@ with st.expander("➕ Aggiungi un nuovo esercizio al database"):
             if nuovo_nome not in exercises_dict.get(giorno_destinazione, []):
                 nuovo_es_df = pd.DataFrame([{"Giorno": giorno_destinazione, "Esercizio": nuovo_nome}])
                 df_ex_aggiornato = pd.concat([df_esercizi, nuovo_es_df], ignore_index=True)
-                conn.update(worksheet="Esercizi", data=df_ex_aggiornato)
+                # Corretto: aggiunto spreadsheet=SPREADSHEET_URL
+                conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_ex_aggiornato)
                 st.cache_data.clear()
                 st.success(f"'{nuovo_nome}' aggiunto a {giorno_destinazione} su Google Sheets!")
                 st.rerun()
