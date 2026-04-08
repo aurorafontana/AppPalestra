@@ -13,14 +13,36 @@ st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="center
 # --- CONNESSIONE GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# Esercizi predefiniti (in caso il foglio sia vuoto)
+# --- LISTA COMPLETA ESERCIZI PREDEFINITI ---
+# Modifica questa lista aggiungendo tutti quelli che ti servono
 DEFAULT_EXERCISES = [
+    # GIORNO 1 - UPPER A
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Panca piana bilanciere"},
-    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Lat machine / trazioni"},
+    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Lat machine"},
+    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Military Press"},
+    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Rematore manubrio"},
+    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Curl bicipiti"},
+    
+    # GIORNO 2 - LOWER A
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Squat"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Romanian deadlift"},
+    {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg Press"},
+    {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg Extension"},
+    {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Calf raise"},
+
+    # GIORNO 3 - UPPER B
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Panca inclinata multipower"},
-    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hack squat / front squat"}
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Trazioni"},
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Dip parallele"},
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Pulley basso"},
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Alzate laterali"},
+
+    # GIORNO 4 - LOWER B
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hack squat"},
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Leg curl"},
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Affondi manubri"},
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Stacco da terra"},
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Plank"}
 ]
 
 @st.cache_data(ttl=5)
