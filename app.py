@@ -4,17 +4,17 @@ from datetime import datetime
 import altair as alt
 from streamlit_gsheets import GSheetsConnection
 
-# --- CONFIGURAZIONE ---
-SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/16U2wd-3GfeH-oqL5C-iA_ewQdkScEHShTA0HwVpOXgA/edit?usp=sharing"
+# --- INSERISCI QUI IL LINK DEL TUO FOGLIO GOOGLE ---
+SPREADSHEET_URL = "INCOLLA_QUI_IL_LINK_DEL_TUO_FOGLIO_GOOGLE"
 
-st.set_page_config(page_title="Gym Tracker PRO", page_icon="🏋️", layout="centered")
+# --- SETUP PAGINA ---
+st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="centered")
 
-# --- CONNESSIONE ---
+# --- CONNESSIONE GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- LISTA COMPLETA ESERCIZI (Aggiornata con la tua lista) ---
-DEFAULT_EXERCISES = [
-    # Giorno 1 – Upper A
+# --- LISTA ESERCIZI COMPLETA (Restaurata) ---
+DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Panca piana bilanciere"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Lat machine / trazioni"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Panca inclinata manubri"},
@@ -23,14 +23,12 @@ DEFAULT_EXERCISES = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Alzate laterali"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Curl bilanciere EZ"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Pushdown corda"},
-    # Giorno 2 – Lower A
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Squat"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Romanian deadlift"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg press"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg curl"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Calf raise"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Crunch cavo"},
-    # Giorno 3 – Upper B
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Panca inclinata multipower / chest press"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Pulldown presa neutra"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Rematore manubrio"},
@@ -40,7 +38,6 @@ DEFAULT_EXERCISES = [
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Curl manubri alternati"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "French press / estensioni tricipiti"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Hammer curl"},
-    # Giorno 4 – Lower B
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hack squat / front squat"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hip thrust"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Bulgarian split squat"},
@@ -50,110 +47,149 @@ DEFAULT_EXERCISES = [
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry / reverse curl"}
 ]
 
-@st.cache_data(ttl=2)
+# --- FUNZIONI DI CARICAMENTO (Senza Cache per sicurezza in scrittura) ---
 def load_data():
     try:
-        df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Storico")
-        if df.empty:
-            return pd.DataFrame(columns=["Data", "Giorno", "Esercizio", "Peso_S1", "Reps_S1", "Peso_S2", "Reps_S2", "Peso_S3", "Reps_S3", "Peso_S4", "Reps_S4", "Note"])
-        df['Data'] = pd.to_datetime(df['Data'], errors='coerce')
-        return df.dropna(subset=['Data']).sort_values("Data")
-    except:
+        # ttl=0 obbliga l'app a leggere il foglio Excel reale ogni volta, evitando la perdita di righe
+        df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Storico", ttl=0)
+        df = df.dropna(how='all')
+        return df
+    except Exception:
         return pd.DataFrame(columns=["Data", "Giorno", "Esercizio", "Peso_S1", "Reps_S1", "Peso_S2", "Reps_S2", "Peso_S3", "Reps_S3", "Peso_S4", "Reps_S4", "Note"])
 
-@st.cache_data(ttl=2)
 def load_exercises():
     try:
-        df_ex = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi")
-        if df_ex is None or df_ex.empty:
-            df_default = pd.DataFrame(DEFAULT_EXERCISES)
-            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_default)
+        df_ex = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", ttl=0)
+        df_ex = df_ex.dropna(how='all')
+        if df_ex.empty or "Giorno" not in df_ex.columns:
+            df_default = pd.DataFrame(DEFAULT_EXERCISES_LIST)
+            conn.update(worksheet="Esercizi", data=df_default)
             return df_default
         return df_ex
-    except:
-        return pd.DataFrame(DEFAULT_EXERCISES)
+    except Exception:
+        return pd.DataFrame(DEFAULT_EXERCISES_LIST)
 
-# Caricamento
+# --- AVVIO DATI ---
 df_storico = load_data()
 df_esercizi = load_exercises()
 
 giorni_disponibili = ["Giorno 1 - Upper A", "Giorno 2 - Lower A", "Giorno 3 - Upper B", "Giorno 4 - Lower B"]
-exercises_dict = {g: df_esercizi[df_esercizi['Giorno'] == g]['Esercizio'].tolist() for g in giorni_disponibili}
+exercises_dict = {giorno: df_esercizi[df_esercizi['Giorno'] == giorno]['Esercizio'].tolist() for giorno in giorni_disponibili}
 
-st.title("🏋️ Workout Tracker PRO")
+# --- TITOLO ---
+st.title("🏋️ Workout Tracker")
 
+# --- SELEZIONE GIORNO E ESERCIZIO ---
 col1, col2 = st.columns(2)
 with col1:
-    giorno_sel = st.selectbox("Seleziona Giorno", giorni_disponibili)
-with col2:
-    es_disponibili = exercises_dict.get(giorno_sel, [])
-    es_sel = st.selectbox("Seleziona Esercizio", es_disponibili) if es_disponibili else None
+    giorno_selezionato = st.selectbox("Seleziona Giorno", giorni_disponibili)
 
-if es_sel:
-    st.divider()
-    # Filtro e preparazione dati grafico
-    storico_es = df_storico[df_storico["Esercizio"] == es_sel].copy()
-    
-    if not storico_es.empty:
-        # Calcolo peso max per il grafico
-        cols_p = ['Peso_S1', 'Peso_S2', 'Peso_S3', 'Peso_S4']
-        storico_es[cols_p] = storico_es[cols_p].apply(pd.to_numeric, errors='coerce').fillna(0)
-        storico_es['Peso_Max'] = storico_es[cols_p].max(axis=1)
+with col2:
+    esercizi_giorno = exercises_dict.get(giorno_selezionato, [])
+    if not esercizi_giorno:
+        st.warning("Nessun esercizio. Aggiorna o aggiungine uno in basso!")
+        esercizio_selezionato = None
+    else:
+        esercizio_selezionato = st.selectbox("Seleziona Esercizio", esercizi_giorno)
+
+st.divider()
+
+if esercizio_selezionato:
+    # --- SEZIONE STORICO E GRAFICO ---
+    st.subheader(f"📊 Dati per: {esercizio_selezionato}")
+
+    if not df_storico.empty and "Esercizio" in df_storico.columns:
+        storico_esercizio = df_storico[df_storico["Esercizio"] == esercizio_selezionato].copy()
+    else:
+        storico_esercizio = pd.DataFrame()
+
+    if not storico_esercizio.empty:
+        storico_esercizio["Data"] = pd.to_datetime(storico_esercizio["Data"])
+        storico_esercizio = storico_esercizio.sort_values(by="Data", ascending=False)
         
-        # Info ultimo allenamento
-        ultimo = storico_es.sort_values("Data", ascending=False).iloc[0]
-        st.info(f"**Ultimo allenamento ({ultimo['Data'].strftime('%d/%m/%Y')}):**\n"
-                f"S1: {ultimo['Peso_S1']}kg x {ultimo['Reps_S1']} | S2: {ultimo['Peso_S2']}kg x {ultimo['Reps_S2']}")
+        ultimo_allenamento = storico_esercizio.iloc[0]
         
-        # Grafico
-        chart = alt.Chart(storico_es).mark_line(point=True, color='#FF4B4B').encode(
+        st.info(f"**Ultimo allenamento ({ultimo_allenamento['Data'].strftime('%d/%m/%Y')}):**\n"
+                f"- S1: {ultimo_allenamento['Peso_S1']}kg x {ultimo_allenamento['Reps_S1']} reps\n"
+                f"- S2: {ultimo_allenamento['Peso_S2']}kg x {ultimo_allenamento['Reps_S2']} reps\n"
+                f"- S3: {ultimo_allenamento['Peso_S3']}kg x {ultimo_allenamento['Reps_S3']} reps\n"
+                f"- S4: {ultimo_allenamento['Peso_S4']}kg x {ultimo_allenamento['Reps_S4']} reps\n"
+                f"- Note: {ultimo_allenamento['Note'] if pd.notna(ultimo_allenamento['Note']) else 'Nessuna nota'}")
+
+        storico_esercizio['Peso_Max'] = storico_esercizio[['Peso_S1', 'Peso_S2', 'Peso_S3', 'Peso_S4']].apply(pd.to_numeric, errors='coerce').max(axis=1)
+        
+        chart = alt.Chart(storico_esercizio).mark_line(point=True).encode(
             x=alt.X('Data:T', title='Data'),
-            y=alt.Y('Peso_Max:Q', title='Carico Max (kg)'),
-            tooltip=['Data', 'Peso_Max']
+            y=alt.Y('Peso_Max:Q', title='Peso Massimo (kg)'),
+            tooltip=['Data:T', 'Peso_Max:Q']
         ).properties(height=250)
+        
         st.altair_chart(chart, use_container_width=True)
     else:
-        st.warning("Nessun dato registrato per questo esercizio.")
+        st.write("Nessun dato precedente per questo esercizio. Inizia a spingere! 💪")
 
-    # Form registrazione
-    with st.form("new_workout", clear_on_submit=True):
-        st.subheader("Registra l'allenamento di oggi")
-        c1, c2, c3, c4 = st.columns(4)
-        p1 = c1.number_input("P1 (kg)", min_value=0.0, step=0.5)
-        r1 = c1.number_input("R1", min_value=0, step=1)
-        p2 = c2.number_input("P2 (kg)", min_value=0.0, step=0.5)
-        r2 = c2.number_input("R2", min_value=0, step=1)
-        p3 = c3.number_input("P3 (kg)", min_value=0.0, step=0.5)
-        r3 = c3.number_input("R3", min_value=0, step=1)
-        p4 = c4.number_input("P4 (kg)", min_value=0.0, step=0.5)
-        r4 = c4.number_input("R4", min_value=0, step=1)
+    st.divider()
+
+    # --- INSERIMENTO NUOVI DATI ---
+    st.subheader("✍️ Registra Allenamento Oggi")
+    oggi = datetime.now().strftime("%Y-%m-%d")
+
+    with st.form("workout_form", clear_on_submit=True):
+        cols_s1 = st.columns(2)
+        with cols_s1[0]: p1 = st.number_input("Peso Serie 1 (kg)", min_value=0.0, step=1.0, format="%.1f")
+        with cols_s1[1]: r1 = st.number_input("Reps Serie 1", min_value=0, step=1)
         
-        note = st.text_input("Note/Sensazioni")
+        cols_s2 = st.columns(2)
+        with cols_s2[0]: p2 = st.number_input("Peso Serie 2 (kg)", min_value=0.0, step=1.0, format="%.1f")
+        with cols_s2[1]: r2 = st.number_input("Reps Serie 2", min_value=0, step=1)
         
-        if st.form_submit_button("💾 SALVA ALLENAMENTO", use_container_width=True):
-            nuovo = pd.DataFrame([{
-                "Data": datetime.now().strftime("%Y-%m-%d"),
-                "Giorno": giorno_sel, "Esercizio": es_sel,
+        cols_s3 = st.columns(2)
+        with cols_s3[0]: p3 = st.number_input("Peso Serie 3 (kg)", min_value=0.0, step=1.0, format="%.1f")
+        with cols_s3[1]: r3 = st.number_input("Reps Serie 3", min_value=0, step=1)
+        
+        cols_s4 = st.columns(2)
+        with cols_s4[0]: p4 = st.number_input("Peso Serie 4 (kg)", min_value=0.0, step=1.0, format="%.1f")
+        with cols_s4[1]: r4 = st.number_input("Reps Serie 4", min_value=0, step=1)
+        
+        note = st.text_area("Note (sensazioni, tecnica, fastidi...)", height=100)
+        
+        submitted = st.form_submit_button("💾 Salva Allenamento", use_container_width=True)
+        
+        if submitted:
+            # Crea la nuova riga
+            nuova_riga = pd.DataFrame([{
+                "Data": oggi, "Giorno": giorno_selezionato, "Esercizio": esercizio_selezionato,
                 "Peso_S1": p1, "Reps_S1": r1, "Peso_S2": p2, "Reps_S2": r2,
-                "Peso_S3": p3, "Reps_S3": r3, "Peso_S4": p4, "Reps_S4": r4,
-                "Note": note
+                "Peso_S3": p3, "Reps_S3": r3, "Peso_S4": p4, "Reps_S4": r4, "Note": note
             }])
-            # Ricarichiamo i dati freschi prima di concatenare per evitare di perdere dati di altri esercizi
-            df_attuale = load_data()
-            df_final = pd.concat([df_attuale, nuovo], ignore_index=True)
-            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Storico", data=df_final)
-            st.cache_data.clear()
-            st.success("Allenamento salvato con successo!")
+            
+            # Legge il database in tempo reale un istante prima di scrivere per proteggere lo storico
+            df_aggiornato_fresco = load_data()
+            if df_aggiornato_fresco.empty:
+                df_finale = nuova_riga
+            else:
+                df_finale = pd.concat([df_aggiornato_fresco, nuova_riga], ignore_index=True)
+                
+            conn.update(worksheet="Storico", data=df_finale)
+            st.success("Allenamento salvato e protetto su Google Sheets!")
             st.rerun()
 
-# Espander per gestione manuale
-with st.expander("⚙️ Gestione Avanzata Esercizi"):
-    st.write("Puoi aggiungere esercizi extra non presenti nella lista iniziale.")
-    n_es = st.text_input("Nome nuovo esercizio")
-    g_es = st.selectbox("Aggiungi a:", giorni_disponibili, key="config_g")
-    if st.button("Aggiungi Esercizio"):
-        if n_es:
-            nuovo_df = pd.concat([df_esercizi, pd.DataFrame([{"Giorno": g_es, "Esercizio": n_es}])])
-            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=nuovo_df)
-            st.cache_data.clear()
-            st.rerun()
+st.divider()
+
+# --- AGGIUNTA NUOVO ESERCIZIO ---
+with st.expander("➕ Aggiungi un nuovo esercizio al database"):
+    with st.form("add_exercise_form"):
+        giorno_destinazione = st.selectbox("A quale giorno vuoi aggiungerlo?", giorni_disponibili)
+        nuovo_nome = st.text_input("Nome del nuovo esercizio")
+        add_submit = st.form_submit_button("Aggiungi alla lista")
+        
+        if add_submit and nuovo_nome:
+            df_ex_fresco = load_exercises()
+            if nuovo_nome not in df_ex_fresco[df_ex_fresco['Giorno'] == giorno_destinazione]['Esercizio'].tolist():
+                nuovo_es_df = pd.DataFrame([{"Giorno": giorno_destinazione, "Esercizio": nuovo_nome}])
+                df_ex_aggiornato = pd.concat([df_ex_fresco, nuovo_es_df], ignore_index=True)
+                conn.update(worksheet="Esercizi", data=df_ex_aggiornato)
+                st.success(f"'{nuovo_nome}' aggiunto a {giorno_destinazione}!")
+                st.rerun()
+            else:
+                st.warning("Esercizio già presente.")
