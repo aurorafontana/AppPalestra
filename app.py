@@ -5,7 +5,7 @@ import altair as alt
 from streamlit_gsheets import GSheetsConnection
 
 # --- INSERISCI QUI IL LINK DEL TUO FOGLIO GOOGLE ---
-SPREADSHEET_URL = "INCOLLA_QUI_IL_LINK_DEL_TUO_FOGLIO_GOOGLE"
+SPREADSHEET_URL = "https://docs.google.com/spreadsheets/d/1-5HJ0awDXYuyiNBEj7C8YxbaXQ9QI_IlgSc9OH8av6o/edit?usp=sharing"
 
 # --- SETUP PAGINA ---
 st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="centered")
