@@ -13,7 +13,7 @@ st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="center
 # --- CONNESSIONE GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- LISTA ESERCIZI COMPLETA (Restaurata) ---
+# --- LISTA ESERCIZI COMPLETA ---
 DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Panca piana bilanciere"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Lat machine / trazioni"},
@@ -47,10 +47,9 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry / reverse curl"}
 ]
 
-# --- FUNZIONI DI CARICAMENTO (Senza Cache per sicurezza in scrittura) ---
+# --- FUNZIONI DI CARICAMENTO ---
 def load_data():
     try:
-        # ttl=0 obbliga l'app a leggere il foglio Excel reale ogni volta, evitando la perdita di righe
         df = conn.read(spreadsheet=SPREADSHEET_URL, worksheet="Storico", ttl=0)
         df = df.dropna(how='all')
         return df
@@ -63,7 +62,8 @@ def load_exercises():
         df_ex = df_ex.dropna(how='all')
         if df_ex.empty or "Giorno" not in df_ex.columns:
             df_default = pd.DataFrame(DEFAULT_EXERCISES_LIST)
-            conn.update(worksheet="Esercizi", data=df_default)
+            # FIX: aggiunto spreadsheet=SPREADSHEET_URL
+            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_default)
             return df_default
         return df_ex
     except Exception:
@@ -156,21 +156,20 @@ if esercizio_selezionato:
         submitted = st.form_submit_button("💾 Salva Allenamento", use_container_width=True)
         
         if submitted:
-            # Crea la nuova riga
             nuova_riga = pd.DataFrame([{
                 "Data": oggi, "Giorno": giorno_selezionato, "Esercizio": esercizio_selezionato,
                 "Peso_S1": p1, "Reps_S1": r1, "Peso_S2": p2, "Reps_S2": r2,
                 "Peso_S3": p3, "Reps_S3": r3, "Peso_S4": p4, "Reps_S4": r4, "Note": note
             }])
             
-            # Legge il database in tempo reale un istante prima di scrivere per proteggere lo storico
             df_aggiornato_fresco = load_data()
             if df_aggiornato_fresco.empty:
                 df_finale = nuova_riga
             else:
                 df_finale = pd.concat([df_aggiornato_fresco, nuova_riga], ignore_index=True)
                 
-            conn.update(worksheet="Storico", data=df_finale)
+            # FIX: aggiunto spreadsheet=SPREADSHEET_URL
+            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Storico", data=df_finale)
             st.success("Allenamento salvato e protetto su Google Sheets!")
             st.rerun()
 
@@ -188,7 +187,8 @@ with st.expander("➕ Aggiungi un nuovo esercizio al database"):
             if nuovo_nome not in df_ex_fresco[df_ex_fresco['Giorno'] == giorno_destinazione]['Esercizio'].tolist():
                 nuovo_es_df = pd.DataFrame([{"Giorno": giorno_destinazione, "Esercizio": nuovo_nome}])
                 df_ex_aggiornato = pd.concat([df_ex_fresco, nuovo_es_df], ignore_index=True)
-                conn.update(worksheet="Esercizi", data=df_ex_aggiornato)
+                # FIX: aggiunto spreadsheet=SPREADSHEET_URL
+                conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_ex_aggiornato)
                 st.success(f"'{nuovo_nome}' aggiunto a {giorno_destinazione}!")
                 st.rerun()
             else:
