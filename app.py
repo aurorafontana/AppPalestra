@@ -13,45 +13,46 @@ st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="center
 # --- CONNESSIONE GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- DIZIONARIO IMMAGINI ESERCIZI (TUTTI GLI ESERCIZI MAPPATI) ---
-# Ho inserito link a GIF animate o immagini esplicative per mostrarti l'esecuzione
+# --- DIZIONARIO IMMAGINI ESERCIZI (NUOVI LINK STABILI) ---
 IMMAGINI_ESERCIZI = {
     # GIORNO 1
-    "Panca piana bilanciere": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif",
-    "Lat machine / trazioni": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif",
-    "Panca inclinata manubri": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif",
-    "Rematore chest-supported": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif",
-    "Shoulder press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif",
-    "Alzate laterali": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif",
-    "Curl bilanciere EZ": "https://fitnessprogramer.com/wp-content/uploads/2021/02/EZ-Bar-Curl.gif",
-    "Pushdown corda": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Triceps-Pushdown.gif",
+    "Panca piana bilanciere": "https://static.strengthlevel.com/images/illustrations/bench-press-1.jpg",
+    "Lat machine / trazioni": "https://static.strengthlevel.com/images/illustrations/lat-pulldown-1.jpg",
+    "Panca inclinata manubri": "https://static.strengthlevel.com/images/illustrations/incline-dumbbell-bench-press-1.jpg",
+    "Rematore chest-supported": "https://static.strengthlevel.com/images/illustrations/dumbbell-row-1.jpg",
+    "Shoulder press": "https://static.strengthlevel.com/images/illustrations/dumbbell-shoulder-press-1.jpg",
+    "Alzate laterali": "https://static.strengthlevel.com/images/illustrations/lateral-raise-1.jpg",
+    "Curl bilanciere EZ": "https://static.strengthlevel.com/images/illustrations/ez-bar-curl-1.jpg",
+    "Pushdown corda": "https://static.strengthlevel.com/images/illustrations/tricep-pushdown-1.jpg",
+    "Pectoral machine": "https://static.strengthlevel.com/images/illustrations/pec-deck-1.jpg",
     
     # GIORNO 2
-    "Squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Squat.gif",
-    "Romanian deadlift": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Romanian-Deadlift.gif",
-    "Leg press": "https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif",
-    "Leg curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Leg-Curl.gif",
-    "Calf raise": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raises.gif",
-    "Crunch cavo": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif",
+    "Squat": "https://static.strengthlevel.com/images/illustrations/squat-1.jpg",
+    "Romanian deadlift": "https://static.strengthlevel.com/images/illustrations/romanian-deadlift-1.jpg",
+    "Leg press": "https://static.strengthlevel.com/images/illustrations/leg-press-1.jpg",
+    "Leg curl": "https://static.strengthlevel.com/images/illustrations/leg-curl-1.jpg",
+    "Calf raise": "https://static.strengthlevel.com/images/illustrations/calf-raise-1.jpg",
+    "Crunch cavo": "https://static.strengthlevel.com/images/illustrations/cable-crunch-1.jpg",
     
     # GIORNO 3
-    "Panca inclinata multipower / chest press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Smith-Machine-Incline-Bench-Press.gif",
-    "Pulldown presa neutra": "https://fitnessprogramer.com/wp-content/uploads/2021/02/V-bar-pull-down.gif",
-    "Rematore manubrio": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif",
-    "Dip assistite / panca stretta": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Triceps-Dips.gif",
-    "Rear delt fly / face pull": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif",
-    "Curl manubri alternati": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif",
-    "French press / estensioni tricipiti": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Triceps-Extension.gif",
-    "Hammer curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif",
+    "Panca inclinata multipower / chest press": "https://static.strengthlevel.com/images/illustrations/smith-machine-incline-bench-press-1.jpg",
+    "Pulldown presa neutra": "https://static.strengthlevel.com/images/illustrations/v-bar-pulldown-1.jpg",
+    "Rematore manubrio": "https://static.strengthlevel.com/images/illustrations/dumbbell-row-1.jpg",
+    "Dip assistite / panca stretta": "https://static.strengthlevel.com/images/illustrations/tricep-dips-1.jpg",
+    "Alzate laterali": "https://static.strengthlevel.com/images/illustrations/lateral-raise-1.jpg",
+    "Rear delt fly / face pull": "https://static.strengthlevel.com/images/illustrations/face-pull-1.jpg",
+    "Curl manubri alternati": "https://static.strengthlevel.com/images/illustrations/dumbbell-curl-1.jpg",
+    "French press / estensioni tricipiti": "https://static.strengthlevel.com/images/illustrations/lying-tricep-extension-1.jpg",
+    "Hammer curl": "https://static.strengthlevel.com/images/illustrations/hammer-curl-1.jpg",
     
     # GIORNO 4
-    "Hack squat / front squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hack-Squat.gif",
-    "Hip thrust": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif",
-    "Bulgarian split squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bulgarian-Split-Squat.gif",
-    "Leg extension": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Extension.gif",
-    "Calf press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Calf-Press-on-Leg-Press.gif",
-    "Farmer carry": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Farmers-Walk.gif",
-    "Reverse curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Reverse-Barbell-Curl.gif"
+    "Hack squat / front squat": "https://static.strengthlevel.com/images/illustrations/hack-squat-1.jpg",
+    "Hip thrust": "https://static.strengthlevel.com/images/illustrations/hip-thrust-1.jpg",
+    "Bulgarian split squat": "https://static.strengthlevel.com/images/illustrations/bulgarian-split-squat-1.jpg",
+    "Leg extension": "https://static.strengthlevel.com/images/illustrations/leg-extension-1.jpg",
+    "Calf press": "https://static.strengthlevel.com/images/illustrations/calf-press-1.jpg",
+    "Farmer carry": "https://static.strengthlevel.com/images/illustrations/farmers-walk-1.jpg",
+    "Reverse curl": "https://static.strengthlevel.com/images/illustrations/reverse-curl-1.jpg"
 }
 
 # --- LISTA ESERCIZI COMPLETA E AGGIORNATA ---
@@ -64,6 +65,7 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Alzate laterali"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Curl bilanciere EZ"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Pushdown corda"},
+    {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Pectoral machine"}, # Aggiunto
     
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Squat"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Romanian deadlift"},
@@ -80,7 +82,7 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Rear delt fly / face pull"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Curl manubri alternati"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "French press / estensioni tricipiti"},
-    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Hammer curl"}, # Confermato
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Hammer curl"},
     
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hack squat / front squat"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hip thrust"},
@@ -88,8 +90,8 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Leg extension"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Leg curl"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Calf press"},
-    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry"}, # Separato
-    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Reverse curl"}  # Separato
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry"},
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Reverse curl"}
 ]
 
 # --- FUNZIONI DI CARICAMENTO ---
@@ -110,7 +112,7 @@ def load_exercises():
             conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_default)
             return df_default
         
-        # Logica per inserire automaticamente i nuovi esercizi se non sono presenti nel foglio Google
+        # Logica per inserire automaticamente i nuovi esercizi (come Pectoral)
         esercizi_presenti = df_ex["Esercizio"].tolist()
         nuovi_da_aggiungere = []
         for default_ex in DEFAULT_EXERCISES_LIST:
@@ -152,14 +154,14 @@ with col2:
         # --- MOSTRA IMMAGINE ESERCIZIO ---
         if esercizio_selezionato in IMMAGINI_ESERCIZI:
             try:
-                st.image(IMMAGINI_ESERCIZI[esercizio_selezionato], use_column_width=True)
+                st.image(IMMAGINI_ESERCIZI[esercizio_selezionato], use_container_width=True)
             except Exception:
                 st.write("*(Immagine temporaneamente non disponibile)*")
 
 st.divider()
 
 if esercizio_selezionato:
-    # --- PROMEMORIA REPS (Personalizzato per gli esercizi richiesti) ---
+    # --- PROMEMORIA REPS ---
     if esercizio_selezionato == "Hammer curl":
         st.caption("💡 **Obiettivo Consigliato:** 3 serie x 10–12 reps")
     elif esercizio_selezionato == "Reverse curl":
