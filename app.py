@@ -13,7 +13,48 @@ st.set_page_config(page_title="Gym Tracker", page_icon="🏋️", layout="center
 # --- CONNESSIONE GOOGLE SHEETS ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# --- LISTA ESERCIZI COMPLETA ---
+# --- DIZIONARIO IMMAGINI ESERCIZI (TUTTI GLI ESERCIZI MAPPATI) ---
+# Ho inserito link a GIF animate o immagini esplicative per mostrarti l'esecuzione
+IMMAGINI_ESERCIZI = {
+    # GIORNO 1
+    "Panca piana bilanciere": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif",
+    "Lat machine / trazioni": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif",
+    "Panca inclinata manubri": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Dumbbell-Press.gif",
+    "Rematore chest-supported": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif",
+    "Shoulder press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Shoulder-Press.gif",
+    "Alzate laterali": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif",
+    "Curl bilanciere EZ": "https://fitnessprogramer.com/wp-content/uploads/2021/02/EZ-Bar-Curl.gif",
+    "Pushdown corda": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Triceps-Pushdown.gif",
+    
+    # GIORNO 2
+    "Squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Squat.gif",
+    "Romanian deadlift": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Romanian-Deadlift.gif",
+    "Leg press": "https://fitnessprogramer.com/wp-content/uploads/2015/11/Leg-Press.gif",
+    "Leg curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Leg-Curl.gif",
+    "Calf raise": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raises.gif",
+    "Crunch cavo": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Crunch.gif",
+    
+    # GIORNO 3
+    "Panca inclinata multipower / chest press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Smith-Machine-Incline-Bench-Press.gif",
+    "Pulldown presa neutra": "https://fitnessprogramer.com/wp-content/uploads/2021/02/V-bar-pull-down.gif",
+    "Rematore manubrio": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Row.gif",
+    "Dip assistite / panca stretta": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Triceps-Dips.gif",
+    "Rear delt fly / face pull": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif",
+    "Curl manubri alternati": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif",
+    "French press / estensioni tricipiti": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Triceps-Extension.gif",
+    "Hammer curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif",
+    
+    # GIORNO 4
+    "Hack squat / front squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Hack-Squat.gif",
+    "Hip thrust": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Hip-Thrust.gif",
+    "Bulgarian split squat": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Bulgarian-Split-Squat.gif",
+    "Leg extension": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Extension.gif",
+    "Calf press": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Calf-Press-on-Leg-Press.gif",
+    "Farmer carry": "https://fitnessprogramer.com/wp-content/uploads/2021/06/Farmers-Walk.gif",
+    "Reverse curl": "https://fitnessprogramer.com/wp-content/uploads/2021/02/Reverse-Barbell-Curl.gif"
+}
+
+# --- LISTA ESERCIZI COMPLETA E AGGIORNATA ---
 DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Panca piana bilanciere"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Lat machine / trazioni"},
@@ -23,12 +64,14 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Alzate laterali"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Curl bilanciere EZ"},
     {"Giorno": "Giorno 1 - Upper A", "Esercizio": "Pushdown corda"},
+    
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Squat"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Romanian deadlift"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg press"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Leg curl"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Calf raise"},
     {"Giorno": "Giorno 2 - Lower A", "Esercizio": "Crunch cavo"},
+    
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Panca inclinata multipower / chest press"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Pulldown presa neutra"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Rematore manubrio"},
@@ -37,14 +80,16 @@ DEFAULT_EXERCISES_LIST = [
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Rear delt fly / face pull"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Curl manubri alternati"},
     {"Giorno": "Giorno 3 - Upper B", "Esercizio": "French press / estensioni tricipiti"},
-    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Hammer curl"},
+    {"Giorno": "Giorno 3 - Upper B", "Esercizio": "Hammer curl"}, # Confermato
+    
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hack squat / front squat"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Hip thrust"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Bulgarian split squat"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Leg extension"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Leg curl"},
     {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Calf press"},
-    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry / reverse curl"}
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Farmer carry"}, # Separato
+    {"Giorno": "Giorno 4 - Lower B", "Esercizio": "Reverse curl"}  # Separato
 ]
 
 # --- FUNZIONI DI CARICAMENTO ---
@@ -64,6 +109,19 @@ def load_exercises():
             df_default = pd.DataFrame(DEFAULT_EXERCISES_LIST)
             conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_default)
             return df_default
+        
+        # Logica per inserire automaticamente i nuovi esercizi se non sono presenti nel foglio Google
+        esercizi_presenti = df_ex["Esercizio"].tolist()
+        nuovi_da_aggiungere = []
+        for default_ex in DEFAULT_EXERCISES_LIST:
+            if default_ex["Esercizio"] not in esercizi_presenti:
+                nuovi_da_aggiungere.append(default_ex)
+                
+        if nuovi_da_aggiungere:
+            df_aggiornato = pd.concat([df_ex, pd.DataFrame(nuovi_da_aggiungere)], ignore_index=True)
+            conn.update(spreadsheet=SPREADSHEET_URL, worksheet="Esercizi", data=df_aggiornato)
+            return df_aggiornato
+            
         return df_ex
     except Exception:
         return pd.DataFrame(DEFAULT_EXERCISES_LIST)
@@ -90,10 +148,25 @@ with col2:
         esercizio_selezionato = None
     else:
         esercizio_selezionato = st.selectbox("Seleziona Esercizio", esercizi_giorno)
+        
+        # --- MOSTRA IMMAGINE ESERCIZIO ---
+        if esercizio_selezionato in IMMAGINI_ESERCIZI:
+            try:
+                st.image(IMMAGINI_ESERCIZI[esercizio_selezionato], use_column_width=True)
+            except Exception:
+                st.write("*(Immagine temporaneamente non disponibile)*")
 
 st.divider()
 
 if esercizio_selezionato:
+    # --- PROMEMORIA REPS (Personalizzato per gli esercizi richiesti) ---
+    if esercizio_selezionato == "Hammer curl":
+        st.caption("💡 **Obiettivo Consigliato:** 3 serie x 10–12 reps")
+    elif esercizio_selezionato == "Reverse curl":
+        st.caption("💡 **Obiettivo Consigliato:** 2 serie x 12–15 reps")
+    elif esercizio_selezionato == "Farmer carry":
+        st.caption("💡 **Obiettivo Consigliato:** 2 serie (usa le note per segnare distanza/tempo)")
+
     # --- SEZIONE STORICO E GRAFICO ---
     st.subheader(f"📊 Dati per: {esercizio_selezionato}")
 
@@ -103,12 +176,9 @@ if esercizio_selezionato:
         storico_esercizio = pd.DataFrame()
 
     if not storico_esercizio.empty:
-        # FIX: errors='coerce' ignora i testi strani e non fa crashare l'app
         storico_esercizio["Data"] = pd.to_datetime(storico_esercizio["Data"], errors='coerce')
-        # FIX: Rimuoviamo eventuali righe che contenevano dati non validi
         storico_esercizio = storico_esercizio.dropna(subset=["Data"])
         
-        # Ri-controlliamo che ci siano ancora dati validi dopo la pulizia
         if not storico_esercizio.empty:
             storico_esercizio = storico_esercizio.sort_values(by="Data", ascending=False)
             
